@@ -44,8 +44,49 @@ public class ProcesadoDatos {
         ArrayList<String> macs = devolverMacs();
         if(args.length > 0){
             System.out.println("Voy a crear la base de datos: ...");
-            //Crear libro de trabajo
+            String nombreArchivo = "PROCESADO.xlsx";
+            //Crear libro de trabajo con la estructura basica
             XSSFWorkbook libroTrabajo = new XSSFWorkbook();
+            XSSFSheet[] hojas = new XSSFSheet[24];
+            int k=7;
+            int aux=0;
+            for (int i=0; i<24;i++){
+                if(i%6==0){
+                    k=7;
+                    aux++;
+                }
+                if(i%2==0){
+                    hojas[i]=libroTrabajo.createSheet("Canal3"+k+"eBeacon-"+aux);
+                }else{
+                    hojas[i]=libroTrabajo.createSheet("Canal3"+k+"Edystone-"+aux);
+                    k++;
+                }
+            }
+            XSSFRow[] rows =new XSSFRow[hojas.length];
+            for (int i=0;i<hojas.length;i++){
+                rows[i]=hojas[i].createRow(0);
+            }
+            boolean par = true;
+            int cont = 1;
+            for (int c = 0; c < 24; c++) {
+                XSSFCell[] cells = new XSSFCell[rows.length];
+                for (int i=0;i<cells.length;i++){
+                    cells[i]=rows[i].createCell(c);
+                }
+                if (par) {
+                    for (int i=0;i<cells.length;i++){
+                        cells[i].setCellValue("Tiempo");
+                    }
+                    par = false;
+                } else {
+                    for(int i=0;i<cells.length;i++){
+                        cells[i].setCellValue("Beacon " + cont);
+                    }
+                    cont++;
+                    par = true;
+                }   
+            }
+            //Leer csv
             String csvFile = args[0];
             BufferedReader br = null;
             String line = "";
@@ -66,6 +107,13 @@ public class ProcesadoDatos {
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
+                //escribir este libro en un OutputStream.
+                FileOutputStream fileOut = new FileOutputStream(nombreArchivo);
+                libroTrabajo.write(fileOut);
+                fileOut.flush();
+                fileOut.close();
+                
+                //cerramos el csv
                 if (br != null) {
                 try {
                     br.close();
