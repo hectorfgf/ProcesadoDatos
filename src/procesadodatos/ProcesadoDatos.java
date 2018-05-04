@@ -1,8 +1,8 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+* To change this license header, choose License Headers in Project Properties.
+* To change this template file, choose Tools | Templates
+* and open the template in the editor.
+*/
 package procesadodatos;
 
 import java.io.BufferedReader;
@@ -31,9 +31,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  * @author Hector
  */
 public class ProcesadoDatos {
-
+    
     /*
-    java -jar ProcesadoDatos.jar "C:\Users\Hector\Documents\NetBeansProjects\ProcesadoDatos\src\procesadodatos\csv\PUNTOREF_5_5_0_0_500_20180503_115213.csv"
+    java -jar ProcesadoDatos.jar "C:\Users\Hector\Documents\NetBeansProjects\ProcesadoDatos\src\procesadodatos\csv\PUNTOREF_5_5_0_0_500_20180503_115213.csv" "C:\Users\Hector\Documents\NetBeansProjects\ProcesadoDatos\src\procesadodatos\csv\PUNTOREF_5_5_180_0_500_20180503_115435.csv" "C:\Users\Hector\Documents\NetBeansProjects\ProcesadoDatos\src\procesadodatos\csv\PUNTOREF_5_5_270_0_500_20180503_115547.csv"
     */
     public static final String SEPARATOR=",";
     public static final char QUOTE='"';
@@ -47,96 +47,110 @@ public class ProcesadoDatos {
             String nombreArchivo = "PROCESADO.xlsx";
             //Crear libro de trabajo con la estructura basica
             XSSFWorkbook libroTrabajo = new XSSFWorkbook();
-            XSSFSheet[] hojas = new XSSFSheet[24];
-            int k=7;
-            int aux=0;
-            for (int i=0; i<24;i++){
-                if(i%6==0){
-                    k=7;
-                    aux++;
+            
+            for(int fichero = 0; fichero<args.length; fichero++){
+                XSSFSheet[] hojas = new XSSFSheet[6];
+                int k=7;
+                String[] file = args[fichero].split("\\\\");
+                String[] procesada = file[file.length-1].split("_");
+                String grados = procesada[procesada.length-5];
+                for (int i=0; i<6;i++){
+                    if(i%2==0){
+                        hojas[i]=libroTrabajo.createSheet("Canal3"+k+"eBeacon-"+grados);
+                    }else{
+                        hojas[i]=libroTrabajo.createSheet("Canal3"+k+"Edystone-"+grados);
+                        k++;
+                    }
                 }
-                if(i%2==0){
-                    hojas[i]=libroTrabajo.createSheet("Canal3"+k+"eBeacon-"+aux);
-                }else{
-                    hojas[i]=libroTrabajo.createSheet("Canal3"+k+"Edystone-"+aux);
-                    k++;
+                XSSFRow[] rows =new XSSFRow[hojas.length];
+                for(int i=0;i<hojas.length;i++){
+                    rows[i]=hojas[i].createRow(0);
                 }
-            }
-            XSSFRow[] rows =new XSSFRow[hojas.length];
-            for (int i=0;i<hojas.length;i++){
-                rows[i]=hojas[i].createRow(0);
-            }
-            boolean par = true;
-            int cont = 1;
-            for (int c = 0; c < 24; c++) {
-                XSSFCell[] cells = new XSSFCell[rows.length];
-                for (int i=0;i<cells.length;i++){
-                    cells[i]=rows[i].createCell(c);
-                }
-                if (par) {
+                boolean par = true;
+                int cont = 1;
+                for (int c = 0; c < macs.toArray().length*2; c++) {
+                    XSSFCell[] cells = new XSSFCell[rows.length];
                     for (int i=0;i<cells.length;i++){
-                        cells[i].setCellValue("Tiempo");
+                        cells[i]=rows[i].createCell(c);
                     }
-                    par = false;
-                } else {
-                    for(int i=0;i<cells.length;i++){
-                        cells[i].setCellValue("Beacon " + cont);
+                    if (par) {
+                        for (int i=0;i<cells.length;i++){
+                            cells[i].setCellValue("Tiempo");
+                        }
+                        par = false;
+                    } else {
+                        for(int i=0;i<cells.length;i++){
+                            cells[i].setCellValue("Beacon " + cont);
+                        }
+                        cont++;
+                        par = true;
                     }
-                    cont++;
-                    par = true;
-                }   
-            }
-            //Leer csv
-            String csvFile = args[0];
-            BufferedReader br = null;
-            String line = "";
-            //Se define separador ","
-            String cvsSplitBy = ",";
-            try {
-                br = new BufferedReader(new FileReader(csvFile));
-                while ((line = br.readLine()) != null) {
-                String[] datos = line.split(cvsSplitBy);
-                //Imprime datos.
-                for(String dato: datos){
-                    System.out.print(dato+", ");
                 }
-                System.out.println("");
-            }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                //escribir este libro en un OutputStream.
-                FileOutputStream fileOut = new FileOutputStream(nombreArchivo);
-                libroTrabajo.write(fileOut);
-                fileOut.flush();
-                fileOut.close();
-                
-                //cerramos el csv
-                if (br != null) {
+                //Leer csv
+                String csvFile = args[fichero];
+                BufferedReader br = null;
+                String line = "";
+                //Se define separador ","
+                String cvsSplitBy = ",";
+                System.out.println("Lectura fichero: "+args[fichero]);
+                System.out.println("-------------------------------------");
                 try {
-                    br.close();
+                    br = new BufferedReader(new FileReader(csvFile));
+                    boolean first = true;
+                    int length = 5;
+                    while ((line = br.readLine()) != null) {
+                        if(first){
+                            first=false;
+                            String[] datos = line.split(cvsSplitBy);
+                            for(int dato=0; dato < datos.length; dato++){
+                                //System.out.print(datos[dato]+", ");
+                                if(datos[dato].trim().equals("\"Length\"")){
+                                    length=dato;
+                                }
+                            }
+                        }else{
+                            String[] datos = line.split(cvsSplitBy);
+                            //Imprime datos.
+                            for(String dato: datos){
+                                System.out.print(dato+", ");
+                            }
+                            System.out.println("sad: "+datos[length]);
+                        }
+                    }
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    //cerramos el csv
+                    if (br != null) {
+                        try {
+                            br.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
-        }   
-        System.out.println("¡Terminado el procesado de datos!.");
+            //escribir este libro en un OutputStream.
+            FileOutputStream fileOut = new FileOutputStream(nombreArchivo);
+            libroTrabajo.write(fileOut);
+            fileOut.flush();
+            fileOut.close();
+            System.out.println("¡Terminado el procesado de datos!.");
         }else{
             System.out.println("Para poder hacer la operacion necesita ficheros.");
         }
-        
         //crearBaseDatos(macs,ruta);
     }
     private static String[] removeTrailingQuotes(String[] fields) {
-
-      String result[] = new String[fields.length];
-
-      for (int i=0;i<result.length;i++){
-         result[i] = fields[i].replaceAll("^"+QUOTE, "").replaceAll(QUOTE+"$", "");
-      }
-      return result;
+        
+        String result[] = new String[fields.length];
+        
+        for (int i=0;i<result.length;i++){
+            result[i] = fields[i].replaceAll("^"+QUOTE, "").replaceAll(QUOTE+"$", "");
+        }
+        return result;
     }
     public static ArrayList<String> devolverMacs() throws IOException {
         ArrayList<String> macs = new ArrayList<String>();
@@ -162,11 +176,11 @@ public class ProcesadoDatos {
         d=d-(minutos*60);
         return hora+":"+minutos+":"+d;
     }
-
+    
     private static String reverse(String palabra) {
         if (palabra.length() == 1) {
             return palabra;
-        } else {    
+        } else {
             return reverse(palabra.substring(1)) + palabra.charAt(0);
         }
     }
