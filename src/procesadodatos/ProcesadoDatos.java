@@ -43,8 +43,13 @@ public class ProcesadoDatos {
     public static void main(String[] args) throws IOException {
         ArrayList<String> macs = devolverMacs();
         if(args.length > 0){
-            String[] archivo = args[0].split("_");
-            String nombreArchivo =  archivo[0]+"_"+archivo[1]+"_"+archivo[2]+"_"+archivo[4]+"_"+archivo[5]+"_"+archivo[6]+"_"+archivo[7].substring(0,archivo[7].length()-5)+"_PROCESADO.xlsx";
+            String[] ruta = args[0].split("\\\\");
+            String[] archivo = ruta[ruta.length-1].split("_");
+            String nombreArchivo = "";
+            for(int i = 0; i< ruta.length-1; i++){
+                nombreArchivo += ruta[i] + "\\";
+            }
+            nombreArchivo +=  archivo[0]+"_"+archivo[1]+"_"+archivo[2]+"_"+archivo[4]+"_"+archivo[5]+"_"+archivo[6]+"_"+archivo[7].substring(0,archivo[7].length()-5)+"_PROCESADO.xlsx";
             System.out.println("Voy a crear la base de datos en " + nombreArchivo);
             //Crear libro de trabajo con la estructura basica
             XSSFWorkbook libroTrabajo = new XSSFWorkbook();
